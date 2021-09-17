@@ -2,7 +2,7 @@ import logging
 import scrapy
 import os
 from scrapy import Spider
-# from vandenborre.items import Manual
+from tplink.items import Manual
 
 
 logger = logging.getLogger(__name__)
@@ -15,34 +15,62 @@ class Tplink(Spider):
     
     def parse(self, response):
         urls = response.css('#list .item .item-box a::attr(href)').getall()
+        # dic = {
+        #     'product': 
+        # }
         for url in urls:
             if not url:
                 continue
             if 'http' not in url:
                 url = 'https://www.tp-link.com/' + url
-            if 'https://static.' in url or '.zip' in url:
+            if 'https://static.' in url:
                 urls.remove(url)
-                print(url, '---------------------------------------------------')
-                
-                # print ('found----------------------------------------------------')
+            if '.zip' in url:
+                urls.remove(url)
 
+            yield scrapy.Request(url=url, callback=self.get_pdf)
 
-            # for goto in url.css('.listicon.clearfix.margin-btm-60-md.margin-btm-20-sm.margin-top-20-sm.js-content.hide-sm .nolist.flex.flex-wrap .col-xs-12.col-md-3 a::attr(href)').extract():
-            #     goto = response.urljoin(goto)
-            #     yield scrapy.Request(url=goto, callback=self.get_each_brand_li)
+    def get_pdf(self, response):
+        manual = Manual()
+        versions = response.css('.select-version a::attr(href)').getall()
+        # print(response.css('.download-list .ga-click::attr(href)').getall())
+        # return
+        # print(response.css('.product-name img::attr(src)').get(),'-=======================++++++++++')
+        # return
+        if len(versions):
+            # get pdf for all the versions
+            for version in versions:
+                self.get_version_pdf(version)
+        else:
+            c_url = response.request.url
+            lang = c_url.split('/')[4]
+            pdfs = response.css('.download-list .ga-click::attr(href)').getall()
 
-    def get_each_brand_li(self, response):
-        for link in response.css('.border-btm-grey-sm.margin-btm-10-sm'):
-            if not link:
-                continue
-            for goto in link.css('.listicon.clearfix.margin-btm-60-md.js-content.margin-btm-20-sm.margin-top-20-sm.hide-sm .nolist.flex.flex-wrap .col-xs-12.col-md-3 a::attr(href)').extract():
-                goto = response.urljoin(goto)
-                yield scrapy.Request(url=goto, callback=self.get_product_data)
+            manual["product"] = ''
+            manual["brand"] = 'Tp-link'
+            manual["thumb"] = response.css('.product-name img::attr(src)').get()
+            manual["model"] = response.css('#model-title-name::text').get()
+            manual["source"] = 'tp-link.com'
+            manual["file_urls"] = pdfs
+            manual["url"] = c_url
+            manual["type"] = 'Manual'
+            manual["product_lang"] =  lang 
+            print(manual,'-----------------------------------------------------------')
 
-    def get_product_data(self, response):
-        pdf_files = response.css('.js-specs-doc.clearfix .doc-link.flex div>a::attr(href)').extract()
-        if len(pdf_files) == 0:
-            return
+            
+            
+            
+        # for link in versions:
+        #     if not link:
+        #         continue
+        #     for goto in link.css('.listicon.clearfix.margin-btm-60-md.js-content.margin-btm-20-sm.margin-top-20-sm.hide-sm .nolist.flex.flex-wrap .col-xs-12.col-md-3 a::attr(href)').extract():
+        #         goto = response.urljoin(goto)
+        #         yield scrapy.Request(url=goto, callback=self.get_product_data)
+
+    # def get_product_data(self, response):
+    #     pdf_files = response.css('.js-specs-doc.clearfix .doc-link.flex div>a::attr(href)').extract()
+    #     if len(pdf_files) == 0:
+    #         return
         
         # for pdf in pdf_files:
         #     pdf = pdf.replace(' ', '%20') # removing spaces from the pdf link
