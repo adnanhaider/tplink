@@ -15,9 +15,23 @@ class Tplink(Spider):
     
     def parse(self, response):
         urls = response.css('#list .item .item-box a::attr(href)').getall()
-        # dic = {
-        #     'product': 
-        # }
+        p_names = response.css('.tp-m-hide::text').getall()
+        product_names = ''
+        product_name_model_dictionary = {}
+        product_container = response.css('.item-box')
+        for index, p_name in enumerate(p_names):
+            if p_name.count('>') > 1:
+                product_names = (p_name.split('>')[-2].strip() + " " + p_name.split('>')[-1].strip())
+
+            models = product_container[index].css('.ga-click::text').getall()
+            # print(product_names,' ========== ' ,models, ' models=============================')
+            # return
+            temp_dic = {product_names: models}
+            product_name_model_dictionary.update(temp_dic)
+        
+        # print(product_name_model_dictionary)    
+        # return
+
         for url in urls:
             if not url:
                 continue
@@ -28,15 +42,17 @@ class Tplink(Spider):
             if '.zip' in url:
                 urls.remove(url)
 
-            yield scrapy.Request(url=url, callback=self.get_pdf)
+
+            yield scrapy.Request(url=url, callback=self.get_pdf, meta={"dict":product_name_model_dictionary})
 
     def get_pdf(self, response):
+        product_names = response.meta.get('product_names')
         manual = Manual()
         versions = response.css('.select-version a::attr(href)').getall()
         # print(response.css('.download-list .ga-click::attr(href)').getall())
         # return
-        # print(response.css('.product-name img::attr(src)').get(),'-=======================++++++++++')
-        # return
+        print(response.css('.product-name a strong::text').get(),'========')
+        return
         if len(versions):
             # get pdf for all the versions
             for version in versions:
