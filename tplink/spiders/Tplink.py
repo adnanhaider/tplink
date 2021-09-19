@@ -10,10 +10,18 @@ logger = logging.getLogger(__name__)
 class Tplink(Spider):
     name = "tplink"
     start_urls = [
-        "https://www.tp-link.com/en/support/download/"
+        "https://www.tp-link.com/en/choose-your-location/"
+        # "https://www.tp-link.com/en/support/download/"
         ]
-    
+
     def parse(self, response):
+        urls = response.css('.location-item dd>a::attr(href)').getall()
+        for url in urls:
+            url = url+"support/download/"
+            yield scrapy.Request(url=url, callback=self.do_parse)
+
+    
+    def do_parse(self, response):
         urls = response.css('#list .item .item-box a::attr(href)').getall()
         p_names = response.css('.tp-m-hide::text').getall()
         product_names = ''
