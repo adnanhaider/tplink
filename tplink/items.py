@@ -14,6 +14,7 @@ class Manual(scrapy.Item):
     file_urls = scrapy.Field() # url to PDF
     eans = scrapy.Field() # optional product EANs
     files = scrapy.Field() # internal
+    product_lang = scrapy.Field() # language
     type = scrapy.Field() # type, for example "quick start guide", "datasheet" or "manual" (optional if type = manual)
     url = scrapy.Field() # url of the page containing link to pdf
     thumb = scrapy.Field() # thumbnail (optional)

@@ -40,32 +40,42 @@ class Tplink(Spider):
             if 'https://static.' in url:
                 urls.remove(url)
             if '.zip' in url:
-                urls.remove(url)
+                if url in urls:
+                    urls.remove(url)
 
 
             yield scrapy.Request(url=url, callback=self.get_pdf, meta={"dict":product_name_model_dictionary})
 
     def get_pdf(self, response):
-        product_names = response.meta.get('product_names')
+        dictionary = response.meta.get('dict')
         manual = Manual()
         versions = response.css('.select-version a::attr(href)').getall()
         # print(response.css('.download-list .ga-click::attr(href)').getall())
         # return
-        print(response.css('.product-name a strong::text').get(),'========')
-        return
+        # print(response.css('.product-name a strong::text').get(),'========')
+        # return
         if len(versions):
             # get pdf for all the versions
             for version in versions:
-                self.get_version_pdf(version)
+                # self.get_version_pdf(version)
+                pass
         else:
             c_url = response.request.url
             lang = c_url.split('/')[4]
             pdfs = response.css('.download-list .ga-click::attr(href)').getall()
-
-            manual["product"] = ''
+            model = response.css('#model-title-name::text').get()
+            thumb = response.css('.product-name img::attr(src)').get()
+            product = ''
+            # print(model, '-----------------------model-----')
+            for key,value in dictionary.items():
+                if model in value:
+                    # print('____found-----------', model)
+                    product = key
+            # return
+            manual["product"] = product
             manual["brand"] = 'Tp-link'
-            manual["thumb"] = response.css('.product-name img::attr(src)').get()
-            manual["model"] = response.css('#model-title-name::text').get()
+            manual["thumb"] = thumb
+            manual["model"] = model
             manual["source"] = 'tp-link.com'
             manual["file_urls"] = pdfs
             manual["url"] = c_url
