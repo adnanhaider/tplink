@@ -9,6 +9,8 @@
 
 BOT_NAME = 'tplink'
 
+FEED_EXPORT_ENCODING = 'utf-8'
+
 SPIDER_MODULES = ['tplink.spiders']
 NEWSPIDER_MODULE = 'tplink.spiders'
 
