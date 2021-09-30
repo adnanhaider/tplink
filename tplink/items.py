@@ -10,6 +10,7 @@ class Manual(scrapy.Item):
     model = scrapy.Field() # product name without brand
     model_2 = scrapy.Field() # alternative product name (optional)
     brand = scrapy.Field() # brand name
+    parent_product = scrapy.Field() # parent product 
     product = scrapy.Field() # product (for example "washing machines")
     file_urls = scrapy.Field() # url to PDF
     eans = scrapy.Field() # optional product EANs
