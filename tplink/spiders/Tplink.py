@@ -16,12 +16,10 @@ class Tplink(Spider):
     def parse(self, response):
         urls = response.css('.location-item dd>a::attr(href)').getall()
         for url in urls:
-            if url != 'https://www.tp-link.com.cn/':
-            # if url == 'https://www.tp-link.com/en/':
+            if url != 'http://www.tp-link.com.cn/':
                 url = url+"support/download/"
                 yield scrapy.Request(url=url, callback=self.do_parse)
-                # return
-    
+            
     def do_parse(self, response):
         urls = response.css('.item-box a::attr(href)').getall()
         p_names = response.css('.tp-m-hide::text').getall()
